@@ -48,9 +48,17 @@ func DecodersSpec(c gospec.Context) {
 
 	c.Specify("A JsonDecoder", func() {
 		encoded, err := json.Marshal(msg)
+
 		c.Assume(err, gs.IsNil)
 		pack := NewPipelinePack(config.inputRecycleChan)
 		decoder := new(JsonDecoder)
+
+		c.Specify("shouldn't die with a CEF encoded message", func() {
+			encoded = []byte(`{"uuid":"8a3ef806-18cc-5621-8487-99c421582963", "fields": [{"value_string": [""], "value_type": "STRING", "name": "cef_meta.syslog_priority", "value_format": "RAW"}, {"value_string": [""], "value_type": "STRING", "name": "cef_meta.syslog_ident", "value_format": "RAW"}, {"value_string": [""], "value_type": "STRING", "name": "cef_meta.syslog_facility", "value_format": "RAW"}, {"value_string": [""], "value_type": "STRING", "name": "cef_meta.syslog_options", "value_format": "RAW"}], "severity": 6, "hostname": "victorng-MacBookAir", "pid": 28836, "timestamp": 1366913978176925, "logger": "", "type": "cef", "payload": "Apr 25 14:19:38 victorng-MacBookAir CEF:0|mozilla|weave|3|x|x|5|cs1Label=requestClientApplication cs1=MySuperBrowser requestMethod=GET request=/ src=127.0.0.1 dhost=127.0.0.1 suser=none", "env_version": "0.8"}`)
+			pack.MsgBytes = encoded
+			err := decoder.Decode(pack)
+			c.Expect(err, gs.IsNil)
+		})
 
 		c.Specify("decodes a json message", func() {
 			pack.MsgBytes = encoded
